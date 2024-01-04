@@ -54,5 +54,6 @@ module TicketChallenge
 
     config.generators.system_tests = nil
     config.generators.jbuilder = false
+    config.session_store :cookie_store, key: '_ticket_challenge'
   end
 end

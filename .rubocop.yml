@@ -15,8 +15,12 @@ AllCops:
     - 'node_modules/**/*'
     - 'config/**/*'
     - 'tmp/**/*'
+    - '*.ru'
+    - 'Dangerfile'
   TargetRubyVersion: 2.7
   NewCops: enable
+Rails/I18nLocaleTexts:
+  Enabled: false
 
 Style/Documentation:
   Enabled: false
