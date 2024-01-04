@@ -1,62 +1,97 @@
-# syntax = docker/dockerfile:1
+FROM ruby:3.2.2-slim
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
-ARG RUBY_VERSION=3.2.2
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+ARG BUILD_ENV=development
+ARG RUBY_ENV=development
+ARG APP_HOME=/app
+ARG NODE_ENV=development
+ARG ASSET_HOST=http://localhost
 
-# Rails app lives here
-WORKDIR /rails
+# Define all the envs here
+ENV BUILD_ENV=$BUILD_ENV \
+    RACK_ENV=$RUBY_ENV \
+    RAILS_ENV=$RUBY_ENV \
+    PORT=80 \
+    BUNDLE_JOBS=4 \
+    BUNDLE_PATH="/bundle" \
+    ASSET_HOST=$ASSET_HOST \
+    NODE_ENV=$NODE_ENV \
+    NODE_SOURCE_VERSION=16 \
+    LANG="en_US.UTF-8" \
+    LC_ALL="en_US.UTF-8" \
+    LANGUAGE="en_US:en"
 
-# Set production environment
-ENV RAILS_ENV="production" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
-
-
-# Throw-away build stage to reduce size of final image
-FROM base as build
-
-# Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev libvips pkg-config
+    apt-get install -y --no-install-recommends apt-transport-https curl gnupg net-tools && \
+    apt-get install -y --no-install-recommends build-essential libpq-dev && \
+    apt-get install -y --no-install-recommends rsync locales chrpath pkg-config libfreetype6 libfontconfig1 git cmake wget unzip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install application gems
-COPY Gemfile Gemfile.lock ./
-RUN bundle install && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    bundle exec bootsnap precompile --gemfile
+# Add Yarn repository
+# Add the PPA (personal package archive) maintained by NodeSource
+# This will have more up-to-date versions of Node.js than the official Debian repositories
+ADD https://dl.yarnpkg.com/debian/pubkey.gpg /tmp/yarn-pubkey.gpg
+RUN apt-key add /tmp/yarn-pubkey.gpg && rm /tmp/yarn-pubkey.gpg && \
+    echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list && \
+    curl -sL https://deb.nodesource.com/setup_"$NODE_SOURCE_VERSION".x | bash - && \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends nodejs yarn && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy application code
-COPY . .
+# Set up the Chrome PPA and install Chrome Headless
+RUN if [ "$BUILD_ENV" = "test" ]; then \
+    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo 'deb http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends google-chrome-stable && \
+    rm /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* ; \
+    fi
 
-# Precompile bootsnap code for faster boot times
-RUN bundle exec bootsnap precompile app/ lib/
+WORKDIR $APP_HOME
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# Skip installing gem documentation
+RUN mkdir -p /usr/local/etc \
+    && { \
+    echo '---'; \
+    echo ':update_sources: true'; \
+    echo ':benchmark: false'; \
+    echo ':backtrace: true'; \
+    echo ':verbose: true'; \
+    echo 'gem: --no-ri --no-rdoc'; \
+    echo 'install: --no-document'; \
+    echo 'update: --no-document'; \
+    } >> /usr/local/etc/gemrc
 
+# Copy all denpendencies from app and engines into tmp/docker to install
+COPY tmp/docker ./
 
-# Final stage for app image
-FROM base
+# Install Ruby gems
+RUN gem install bundler && \
+    bundle config set jobs $BUNDLE_JOBS && \
+    bundle config set path $BUNDLE_PATH && \
+    if [ "$BUILD_ENV" = "production" ]; then \
+    bundle config set deployment yes && \
+    bundle config set without 'development test' ; \
+    fi && \
+    bundle install
 
-# Install packages needed for deployment
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libvips postgresql-client && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+# Install JS dependencies
+COPY package.json yarn.lock ./
+RUN yarn install --network-timeout 100000
 
-# Copy built artifacts: gems, application
-COPY --from=build /usr/local/bundle /usr/local/bundle
-COPY --from=build /rails /rails
+# Copying the app files must be placed after the dependencies setup
+# since the app files always change thus cannot be cached
+COPY . ./
 
-# Run and own only the runtime files as a non-root user for security
-RUN useradd rails --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
-USER rails:rails
+# Remove tmp/docker in the final image
+RUN rm -rf tmp/docker
 
-# Entrypoint prepares the database.
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+# Compile assets
+RUN bin/docker-assets-precompile
 
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD ["./bin/rails", "server"]
+EXPOSE $PORT
+
+CMD ./bin/start.sh

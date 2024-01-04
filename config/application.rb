@@ -20,13 +20,16 @@ Bundler.require(*Rails.groups)
 
 module TicketChallenge
   class Application < Rails::Application
+    config.i18n.available_locales = ENV.fetch('AVAILABLE_LOCALES').split(',')
+
+    # eg: DEFAULT_LOCALE = 'en'
+    config.i18n.default_locale = ENV.fetch('DEFAULT_LOCALE')
+
+    # eg: FALLBACK_LOCALES = 'en,th'
+    # config.i18n.fallbacks = ENV.fetch('FALLBACK_LOCALES').split(',')
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
-
-    # Please, add to the `ignore` list any other `lib` subdirectories that do
-    # not contain `.rb` files, or that should not be reloaded or eager loaded.
-    # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w(assets tasks))
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -36,7 +39,20 @@ module TicketChallenge
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # Don't generate system test files.
+    # Set the queuing backend to `Sidekiq`
+    #
+    # Be sure to have the adapter's gem in your Gemfile
+    # and follow the adapter's specific installation
+    # and deployment instructions.
+    config.active_job.queue_adapter = :sidekiq
+
+    # Prefix the queue name of all jobs with Rails ENV
+    config.active_job.queue_name_prefix = nil
+
+    # Compress the responses to reduce the size of html/json controller responses.
+    config.middleware.use Rack::Deflater
+
     config.generators.system_tests = nil
+    config.generators.jbuilder = false
   end
 end
