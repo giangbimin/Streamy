@@ -1,15 +1,13 @@
 Rails.application.routes.draw do
-  get "up" => "rails/health#show", as: :rails_health_check
+  resources :events, only:  %i[index show]
+  root "events#index"
   resources :users, only: %i[create]
   get '/signup', to: 'users#new'
-  get '/login',   to: 'sessions#new'
-  post '/login',   to: 'sessions#create'
-  delete '/logout',  to: 'sessions#destroy'
+  get '/login', to: 'sessions#new'
+  post '/login', to: 'sessions#create'
+  delete '/logout', to: 'sessions#destroy'
+  resources :cart_items, only: %i[index create destroy]
   resources :tickets, only: %i[index new create]
-  root "tickets#index"
-  resource :carts, only: [] do
-    get :show
-    post :add
-    post :remove
-  end
+  get '/cart', to: 'cart_items#index'
+  get "up" => "rails/health#show", as: :rails_health_check
 end

@@ -1,22 +1,31 @@
-<div id="<%= dom_id ticket %>">
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Type:</strong>
-    <%= ticket.type %>
-  </p>
-
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Base price:</strong>
-    <%= ticket.base_price %>
-  </p>
-
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Quantity:</strong>
-    <%= ticket.quantity %>
-  </p>
-
-  <% if action_name != "show" %>
-    <%= link_to "Show this ticket", ticket, class: "rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
-    <%= link_to "Edit this ticket", edit_ticket_path(ticket), class: "rounded-lg py-3 ml-2 px-5 bg-gray-100 inline-block font-medium" %>
-    <hr class="mt-6">
-  <% end %>
+<%= turbo_stream_from ticket, dom_id(ticket) %>
+<div class="flex items-center hover:bg-gray-100 -mx-8 px-6 py-5" id="<%= dom_id(ticket) %>">
+  <div class="flex w-2/5">
+    <div class="flex flex-col justify-between ml-4 flex-grow">
+        <span class="font-bold text-sm"><%= ticket.event.name %></span>
+        <span class="text-red-500 text-xs"><%= ticket.category %></span>
+        <span class="font-semibold text-sm">$<%= ticket.base_price %></span>
+    </div>
+  </div>
+  <span class="text-center w-1/5 font-semibold text-sm"><%= ticket.current_quantity %></span>
+  <div data-controller="cart-add-more-item" >
+    <%= form_with(url: add_ticket_cart_items_path(ticket),
+      scope: :cart_items,
+      class: "flex w-full gap-4" ,data: { turbo_stream: true }) do |f| %>
+      <div class="relative flex items-center max-w-[10rem]">
+        <button type="button" class="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-s-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none" data-action="click->cart-add-more-item#decrement">
+          <svg class="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
+          </svg>
+        </button>
+        <%= f.number_field :quantity, value: 0, min: 0, max: ticket.current_quantity, class: "bg-gray-50 border-x-0 border-gray-300 h-11 text-center text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full py-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", data: { target:"cart-add-more-item.quantity"} %>
+        <button type="button" class="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-e-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none" data-action="click->cart-add-more-item#increment">
+          <svg class="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
+          </svg>
+        </button>
+      </div>
+      <%= f.submit "Add To Cart", class: "rounded-lg py-3 px-5 bg-blue-600 text-white inline-block font-medium cursor-pointer"%>
+    <% end %>
+  </div>
 </div>

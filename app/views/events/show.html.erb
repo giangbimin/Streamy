@@ -1,0 +1,41 @@
+<div class="shadow-md my-10">
+  <div id="<%= dom_id @event %>">
+    <div class="max-w-2xl mx-auto text-center">
+      <h2 class="text-3xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+        <%= @event.name %>
+      </h2>
+
+      <% seconds_until_target_time = @event.start_time.to_i - Time.now.to_i %>
+      <%= content_tag(:h1, "", data: {
+        controller: "countdown",
+        countdown_target: "countdown",
+        seconds_until_end_value: seconds_until_target_time
+      }) %>
+
+      <p class="mt-4 text-base font-normal text-gray-500 sm:text-xl dark:text-gray-400">
+        <%= @event.description %>
+      </p>
+    </div>
+    <div data-controller="cart-add-item" >
+      <%= form_with(url: cart_items_path, scope: :cart_items,
+        data: { turbo_stream: true}, method: :post) do |f| %>
+        <div class="relative flex items-center max-w-[10rem]">
+          <button type="button" class="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-s-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none" data-action="click->cart-add-item#decrement">
+            <svg class="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
+            </svg>
+          </button>
+          <%= f.number_field :quantity, value: 0, min: 0, max: 10, class: "bg-gray-50 border-x-0 border-gray-300 h-11 text-center text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full py-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", data: { target:"cart-add-item.quantity"} %>
+          <button type="button" class="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-e-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none" data-action="click->cart-add-item#increment">
+            <svg class="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
+            </svg>
+          </button>
+        </div>
+        <%= f.select :seat_category_id,
+          options_for_select(@seat_categories.collect { |cat| [cat.name, cat.id] }, 1) %>
+        <%= f.submit "Add To Cart", class: "rounded-lg py-3 px-5 bg-blue-600 text-white inline-block font-medium cursor-pointer"%>
+      <% end %>
+    </div>
+  </div>
+</div>

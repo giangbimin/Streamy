@@ -1,0 +1,10 @@
+
+<%= turbo_stream_from @event.event_seats, dom_id(@event, 'event_seats') %>
+<div class="overflow-auto" id=<%= dom_id(@event, 'event_seats') %>>
+  <div class="rounded-lg shadow-lg bg-fuchsia-500 w-full text-center mb-20 h-20">STAGE</div>
+  <div class="flex flex-row gap-2">
+    <% 50.times do %>
+      <button class="p-2 rounded-lg bg-blue-500" type="button">x</button>
+    <% end %>
+  </div>
+</div>

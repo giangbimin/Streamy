@@ -1,0 +1,6 @@
+<%= turbo_stream_from tickets, "tickets" %>
+<div id="tickets">
+  <% tickets.each do |ticket| %>
+    <%= render "ticket", ticket: ticket %>
+  <% end %>
+</div>

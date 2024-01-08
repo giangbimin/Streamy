@@ -1,7 +1,45 @@
-<div class="mx-auto md:w-2/3 w-full">
-  <h1 class="font-bold text-4xl">New user</h1>
+<%= turbo_frame_tag "authentication" do %>
+  <div class="w-full max-w-md mx-auto p-6">
+    <div class="p-4 sm:p-7 shadow-md">
+      <div class="text-center">
+        <h1 class="block text-2xl font-bold text-gray-800 dark:text-white">Sign up</h1>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Already have an account?
+          <%= link_to('Sign in here', login_path, class: "text-blue-600 decoration-2 hover:underline font-medium dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600") %>
+        </p>
+      </div>
 
-  <%= render "form", user: @user %>
+      <div class="mt-5">
+        <%= form_with(model: @user, method: :post, data: {turbo: false}) do |f| %>
 
-  <%= link_to "Back to users", users_path, class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
-</div>
+          <% if @user.errors.any? %>
+            <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-lg mt-3">
+              <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
+
+              <ul>
+                <% @user.errors.each do |error| %>
+                  <li><%= error.full_message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+          <div class="grid gap-y-4">
+            <div>
+              <%= f.label :email, "Email address", class: "block text-sm mb-2 dark:text-white" %>
+              <div class="relative">
+                <%= f.text_field :email, class: "py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600", required: true%>
+              </div>
+            </div>
+            <div>
+              <%= f.label :name, "User name", class: "block text-sm mb-2 dark:text-white" %>
+              <div class="relative">
+                <%= f.text_field :name, class: "py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600", required: true %>
+              </div>
+            </div>
+            <%= f.submit 'Sign up', class: "w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

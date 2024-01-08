@@ -1,0 +1,6 @@
+<%= turbo_stream_from events, "events" %>
+<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 w-full" id="events">
+  <% events.each do |event| %>
+    <%= render 'events/event', event: event %>
+  <% end %>
+</div>

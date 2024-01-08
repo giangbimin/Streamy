@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-class SesionsController < ApplicationController
-  skip_before_action :authentication_user!, only: :destroy
+class SessionsController < ApplicationController
+  skip_before_action :authentication_user!, only: %i[new create]
 
   def new; end
 
   def create
-    user = User.find_by(email: params[:session][:email].downcase)
+    user = User.find_by(email: params[:sessions][:email].downcase)
+
     if user
       log_in(user)
       redirect_back_or(root_url)

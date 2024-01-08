@@ -1,0 +1,20 @@
+<% event_seat = cart_item.event_seat %>
+<% seat_category = event_seat.seat_category %>
+<div class="flex items-center hover:bg-gray-100 -mx-8 px-6 py-5" id="<%= "cart-#{event_seat.id}" %>">
+  <div class="flex w-2/5">
+    <div class="flex flex-col justify-between ml-4 flex-grow">
+      <span class="font-bold text-sm"><%= event_seat.event.name %></span>
+      <span class="text-red-500 text-xs"><%= seat_category.name %></span>
+      <%= button_to 'Remove', cart_item_path(cart_item),
+        class: "font-semibold hover:text-red-500 text-gray-500 text-xs",
+        method: :delete,
+        form: { data: { turbo: true, turbo_confirm: 'Are you sure?' } } %>
+    </div>
+  </div>
+  <div class="text-center w-1/5 font-semibold text-sm">
+   <%= event_seat.id %>
+  </div>
+  <span class="text-center w-1/5 font-semibold text-sm">$<%= seat_category.base_price %></span>
+  <span class="text-center w-1/5 font-semibold text-sm"><%= cart_item.price_estimate_rule %></span>
+  <span class="text-center w-1/5 font-semibold text-sm" >$<%= cart_item.price %></span>
+</div>
