@@ -111,3 +111,6 @@ end
 group :production do
   gem 'rack-timeout' # Rack middleware which aborts requests that have been running for longer than a specified timeout.
 end
+gem "money-rails", "~> 1.15"
+
+gem "stripe", "~> 10.5"

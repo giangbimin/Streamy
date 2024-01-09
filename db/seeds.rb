@@ -10,10 +10,10 @@ event = Event.create(
   hall_id: hall_id
 )
 seat_categories = [
-  { event_id: event.id, name: "general", base_price: 100, quantity: 600, unoccupied: 0 },
-  { event_id: event.id, name: "vip", base_price: 300, quantity: 250, unoccupied: 0 },
-  { event_id: event.id, name: "box", base_price: 500, quantity: 150, unoccupied: 0 },
-  { event_id: event.id, name: "front_pro", base_price: 1000, quantity: 50, unoccupied: 0 }
+  { event_id: event.id, name: "general", base_price: 100, quantity: 600, unoccupied_count: 0 },
+  { event_id: event.id, name: "vip", base_price: 300, quantity: 250, unoccupied_count: 0 },
+  { event_id: event.id, name: "box", base_price: 500, quantity: 150, unoccupied_count: 0 },
+  { event_id: event.id, name: "front_pro", base_price: 1000, quantity: 50, unoccupied_count: 0 }
 ]
 SeatCategory.insert_all(seat_categories)
 seat_ids = HallSeat.ids
@@ -27,7 +27,9 @@ SeatCategory.all.each do |catetory|
 end
 EventSeat.insert_all(event_seats)
 cart = Cart.create(user_id: user.id, status: :active)
-CartItem.create(cart_id:cart.id, event_seat_id: EventSeat.first.id, price_estimate_rule: 0, price: 1000.5)
+CartItem.create(cart_id: cart.id, event_seat_id: EventSeat.first.id, price_estimate_rule: 0, price: 1000.5)
+CartItem.create(cart_id: cart.id, event_seat_id: EventSeat.second.id, price_estimate_rule: 0, price: 1000.5)
+CartItem.create(cart_id: cart.id, event_seat_id: EventSeat.last.id, price_estimate_rule: 0, price: 1000.5)
 order = Order.create(cart_id: cart.id, total_price: 1000)
 Ticket.create(order_id: order.id, event_seat_id: CartItem.first.event_seat_id)
 Payment.create(order_id: order.id, user_id: user.id, transaction_status: 1)

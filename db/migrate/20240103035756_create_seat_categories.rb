@@ -5,7 +5,7 @@ class CreateSeatCategories < ActiveRecord::Migration[7.1]
       t.string :name, null: false
       t.float :base_price, null: false, default: 0
       t.integer :quantity, null: false, default: 0
-      t.integer :unoccupied, null: false, default: 0
+      t.integer :unoccupied_count, null: false, default: 0
 
       t.timestamps
     end

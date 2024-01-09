@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_08_065021) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_09_201416) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -18,9 +18,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_08_065021) do
     t.bigint "cart_id", null: false
     t.bigint "event_seat_id", null: false
     t.integer "price_estimate_rule", default: 0, null: false
-    t.float "price", default: 0.0, null: false
+    t.integer "price", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_product_id"
+    t.string "stripe_price_id"
+    t.string "currency", default: "usd"
     t.index ["cart_id"], name: "index_cart_items_on_cart_id"
     t.index ["event_seat_id"], name: "index_cart_items_on_event_seat_id"
   end
@@ -74,7 +77,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_08_065021) do
   create_table "orders", force: :cascade do |t|
     t.bigint "cart_id", null: false
     t.integer "status", default: 0, null: false
-    t.float "total_price", default: 0.0, null: false
+    t.integer "total_price", default: 0, null: false
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -96,7 +99,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_08_065021) do
     t.string "name", null: false
     t.float "base_price", default: 0.0, null: false
     t.integer "quantity", default: 0, null: false
-    t.integer "unoccupied", default: 0, null: false
+    t.integer "unoccupied_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_seat_categories_on_event_id"
@@ -118,6 +121,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_08_065021) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_customer_id"
   end
 
   add_foreign_key "cart_items", "carts"

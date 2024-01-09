@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module PriceEstimateRule
+module PricePlan
   class Base
     attr_reader :cart_item
 
@@ -12,8 +12,7 @@ module PriceEstimateRule
     end
 
     def call
-      cart_item.price = @base_price
-      cart_item
+      @base_price
     end
   end
 end

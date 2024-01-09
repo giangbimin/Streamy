@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module PriceEstimateRule
-  class Limited < PriceEstimateRule::Base
+module PricePlan
+  class Limited < PricePlan::Base
     RATE = 1.1
     TOTAL_BLOCK = 10
 
@@ -11,16 +11,9 @@ module PriceEstimateRule
     end
 
     def call
-      estimate_price
-      cart_item
-    end
-
-    private
-
-    def estimate_price
       current_block = ((@unoccupied_count + 1) / TOTAL_BLOCK) + 1
       current_block = TOTAL_BLOCK if current_block > TOTAL_BLOCK
-      cart_item.price = (@base_price * (RATE**(current_block - 1))).round(2)
+      (@base_price * (RATE**(current_block - 1))).round(2)
     end
   end
 end
