@@ -6,8 +6,10 @@ class WebhooksController < ApplicationController
   before_action :initialize_webhook!
 
   def create
-    checkout_complete if event.type == 'checkout.session.completed'
-    render json: { message: 'success' }
+    stripe_payment_id = @stripe_payment.data.object.id.id
+    is_success = @stripe_payment.type == 'checkout.session.completed'
+    status = PaymentForm.create(stripe_payment_id: stripe_payment_id, is_success: is_success)
+    render json: { message: status ? 'success' : 'failed' }
   end
 
   private
@@ -15,19 +17,10 @@ class WebhooksController < ApplicationController
   def initialize_webhook!
     payload = request.body.read
     sig_header = request.env['HTTP_STRIPE_SIGNATURE']
-    @webhook = Stripe::Webhook.construct_event(
+    @stripe_payment = Stripe::Webhook.construct_event(
       payload, sig_header, Rails.application.credentials[:stripe][:webhook]
     )
   rescue JSON::ParserError, Stripe::SignatureVerificationError
-    status 400
-  end
-
-  def checkout_complete
-    session = @webhook.data.object
-    session_with_expand = Stripe::Checkout::Session.retrieve({ id: session.id, expand: ['line_items']})
-    session_with_expand.line_items.data.each do |line_item|
-      product = Product.find_by(stripe_product_id: line_item.price.product)
-      product.increment!(:sales_count)
-    end
+    render json: { message: '404'}
   end
 end

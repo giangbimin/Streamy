@@ -7,12 +7,11 @@ class CheckoutForm
 
   validates :cart_id, presence: true
   validate :validate_price
-  before_save :revalidate_stripe_user, :revalidate_stripe_line_items
+  before_save :initial_cache, :revalidate_stripe_user, :revalidate_stripe_line_items
 
   def save
     return false unless valid?
 
-    initial_cache
     ActiveRecord::Base.transaction do
       checkout
     end
@@ -47,7 +46,7 @@ class CheckoutForm
   def validate_price
     service = PriceEstimate::CartService.new(cart)
     service.call
-    error.add(:cart_id, 'price already changed') if service.is_change
+    errors.add(:cart_id, 'price already changed') if service.is_change
   end
 
   def checkout
@@ -76,24 +75,11 @@ class CheckoutForm
     @stripe_session = Stripe::Checkout::Session.create(striper_params)
   end
 
-  # def success_payment
-  #   create_payment
-  #   create_tickets
-  #   notification_to_user
-  # end
-
-  # def create_payment
-  #   Payment.create(stripe_session_id: @stripe_session.id, cart_id: @cart.id, user_id: @user.id,
-  #                  transaction_status: :paid)
-  # end
-
-  # def create_tickets
-  #   @cart_items.each do |cart_item|
-  #     Ticket.create(event_seat_id: cart_item.event_seat_id, order_id: @order.id)
-  #   end
-  # end
-
   def notification_to_user
     # TODO: Email To User @order
+  end
+
+  def perform_auto_check_payment
+    # TOTO: Sidekiq call after 2 minutes Check Request payment success then PaymentForm.create() to unlock Seat
   end
 end
